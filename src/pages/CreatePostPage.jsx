@@ -27,7 +27,7 @@ import SupabaseDebug from '../components/Debug/SupabaseDebug'
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
-const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/mov', 'video/avi']
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/mov', 'video/avi', 'video/quicktime']
 
 function CreatePostPage() {
   const navigate = useNavigate()
