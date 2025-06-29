@@ -43,10 +43,14 @@ function StoryViewerModal({ isOpen, story, onClose }) {
     // Handle video playback for video stories
     if (currentStory?.content_type === 'video' && videoRef.current) {
       videoRef.current.currentTime = 0
+      videoRef.current.muted = isMuted
       if (!isPaused) {
-        videoRef.current.play().catch(err => {
-          console.error('Failed to play video:', err)
-        })
+        // Force autoplay with a small delay to ensure proper loading
+        setTimeout(() => {
+          videoRef.current?.play().catch(err => {
+            console.error('Failed to play video:', err)
+          })
+        }, 100)
       }
       return;
     }
@@ -73,7 +77,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
     }
 
     return () => clearInterval(timer)
-  }, [isOpen, currentStoryIndex, userStories, isPaused])
+  }, [isOpen, currentStoryIndex, userStories, isPaused, isMuted])
 
   // Effect to handle close after progress completes
   useEffect(() => {
@@ -151,18 +155,34 @@ function StoryViewerModal({ isOpen, story, onClose }) {
       )
     } else if (story.file_type && story.file_type.startsWith('video/') || 
                story.content_type === 'video') {
-      // Render video
+      // Render video with Instagram-like behavior
       return (
-        <div className="relative w-full h-full flex items-center justify-center bg-black">
+        <div className="relative w-full h-full bg-black overflow-hidden">
           <video
             ref={videoRef}
             src={story.media_url}
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              // Ensure video fills viewport and maintains aspect ratio
+              minWidth: '100%',
+              minHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              // Hide any browser default controls completely
+              WebkitAppearance: 'none',
+              // Remove any outline or focus styles
+              outline: 'none',
+              border: 'none'
+            }}
             autoPlay={true}
             playsInline={true}
             controls={false}
             muted={isMuted}
             loop={false}
+            preload="auto"
+            // Hide timeline and all controls
+            controlsList="nodownload nofullscreen noremoteplayback"
+            disablePictureInPicture={true}
             onTimeUpdate={(e) => {
               if (e.target.duration) {
                 const percentage = (e.target.currentTime / e.target.duration) * 100;
@@ -173,15 +193,31 @@ function StoryViewerModal({ isOpen, story, onClose }) {
             onError={(e) => {
               console.error('Failed to load story media:', story.media_url, e)
             }}
+            onLoadedData={() => {
+              // Ensure video starts playing immediately after loading
+              if (videoRef.current && !isPaused) {
+                videoRef.current.play().catch(err => {
+                  console.error('Failed to autoplay video:', err)
+                })
+              }
+            }}
+            onCanPlay={() => {
+              // Additional autoplay trigger
+              if (videoRef.current && !isPaused) {
+                videoRef.current.play().catch(err => {
+                  console.error('Failed to play video on canPlay:', err)
+                })
+              }
+            }}
           />
           
-          {/* Mute/Unmute Button */}
+          {/* Mute/Unmute Button - positioned like Instagram */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               toggleMute();
             }}
-            className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/30 rounded-full flex items-center justify-center"
+            className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 hover:bg-black/70"
           >
             {isMuted ? 
               <FiVolumeX className="text-white text-lg" /> : 
@@ -217,13 +253,20 @@ function StoryViewerModal({ isOpen, story, onClose }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          style={{ height: '100vh', width: '100vw' }}
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.9 }}
-            className="relative w-full h-full max-w-sm max-h-screen bg-black"
+            className="relative w-full h-full max-w-sm bg-black"
+            style={{ 
+              height: '100vh',
+              maxHeight: '100vh',
+              // Ensure full viewport coverage on mobile
+              WebkitOverflowScrolling: 'touch'
+            }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
