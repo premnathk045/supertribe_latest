@@ -35,7 +35,7 @@ function ProfileHeader({
 
   return (
     <div className="flex items-center space-x-6 mb-6">
-      <div className="relative" style={{ width: '75px', height: '75px' }}>
+      <div className="relative">
         {isEditing ? (
           <div 
             className="relative cursor-pointer"
@@ -53,7 +53,7 @@ function ProfileHeader({
             <img
               src={editForm.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
               alt={editForm.display_name}
-              className="w-[150px] h-[150px] rounded-full object-cover border-4 border-white shadow-lg"
+              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
               onError={(e) => {
                 e.target.src = 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'
               }}
