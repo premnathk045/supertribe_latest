@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
