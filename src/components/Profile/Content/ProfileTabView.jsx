@@ -4,7 +4,7 @@ import { FiGrid, FiList, FiFilter } from 'react-icons/fi'
 import ContentGrid from './ContentGrid'
 import PostsList from './PostsList'
 import SortOptionsSheet from './SortOptionsSheet'
-import { useNavigate } from 'react-router-dom'
+import Toast from '../../UI/Toast'
 import LoadingSpinner from '../../UI/LoadingSpinner'
 
 const SORT_OPTIONS = [
@@ -13,12 +13,12 @@ const SORT_OPTIONS = [
   { id: 'commented', label: 'Most Commented' }
 ]
 
-function ProfileTabView({ profileData, userPosts, loading, error }) {
-  const navigate = useNavigate()
+function ProfileTabView({ profileData, userPosts, loading, error, onDeletePost }) {
   const [activeTab, setActiveTab] = useState('posts')
   const [viewMode, setViewMode] = useState('grid')
   const [sortOption, setSortOption] = useState(SORT_OPTIONS[0])
   const [showSortOptions, setShowSortOptions] = useState(false)
+  const [toast, setToast] = useState(null)
 
   // Sort posts based on selected option
   const getSortedPosts = () => {
@@ -147,7 +147,8 @@ function ProfileTabView({ profileData, userPosts, loading, error }) {
                 sortedPosts.length > 0 ? (
                   <PostsList 
                     posts={sortedPosts}
-                    profileData={profileData || {}}
+                    profileData={profileData}
+                    onPostDelete={onDeletePost}
                   />
                 ) : (
                   <div className="py-16 text-center">
@@ -165,9 +166,9 @@ function ProfileTabView({ profileData, userPosts, loading, error }) {
                   <ContentGrid 
                     activeTab="media"
                     posts={[sortedPosts.filter(post => post.media_urls && post.media_urls.length > 0), [], []]}
-                    loading={false}
-                    error={null}
-                    onPostClick={(post) => navigate(`/post/${post.id}`)}
+                    loading={loading}
+                    error={error}
+                    onPostClick={(post) => window.location.href = `/post/${post.id}`}
                   />
                 </div>
               )}
@@ -184,6 +185,15 @@ function ProfileTabView({ profileData, userPosts, loading, error }) {
         selectedOption={sortOption}
         onSelect={handleSortSelect}
       />
+      
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }

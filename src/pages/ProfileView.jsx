@@ -5,6 +5,7 @@ import { FiArrowLeft } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useFollow } from '../hooks/useFollow'
+import Toast from '../components/UI/Toast'
 import LoadingSpinner from '../components/UI/LoadingSpinner'
 
 // Import Profile components
@@ -31,6 +32,7 @@ function ProfileView() {
   const [error, setError] = useState(null)
   const [showFollowersModal, setShowFollowersModal] = useState(false)
   const [followersModalTab, setFollowersModalTab] = useState('followers')
+  const [toast, setToast] = useState(null)
   
   // Get story highlights data (view-only)
   const { 
@@ -188,6 +190,40 @@ function ProfileView() {
       console.error('Error navigating to messages:', error)
     }
   }
+  
+  // Handle post deletion
+  const handlePostDelete = async (postId) => {
+    if (!user) return
+    
+    try {
+      // Delete post from Supabase
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id)
+      
+      if (error) throw error
+      
+      // Remove post from local state
+      setUserPosts(prev => prev.filter(post => post.id !== postId))
+      
+      // Show success toast
+      setToast({
+        message: 'Post deleted successfully',
+        type: 'success'
+      })
+      
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      
+      // Show error toast
+      setToast({
+        message: 'Failed to delete post',
+        type: 'error'
+      })
+    }
+  }
 
   // Loading state
   if (loading || followLoading) {
@@ -291,6 +327,7 @@ function ProfileView() {
           userPosts={userPosts}
           loading={postsLoading}
           error={null}
+          onDeletePost={handlePostDelete}
           navigate={navigate}
         />
       </div>
@@ -305,6 +342,15 @@ function ProfileView() {
       followerCount={followerCount}
       followingCount={followingCount}
     />
+    
+    {/* Toast Notification */}
+    {toast && (
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(null)}
+      />
+    )}
   </>
   )
 }
