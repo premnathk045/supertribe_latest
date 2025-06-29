@@ -56,12 +56,7 @@ function BottomNavigation() {
                       </div>
                     )
                   )}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-500 rounded-full"
-                    />
-                  )}
+
                 </motion.div>
                 <span className={`text-xs mt-1 ${
                   isActive ? 'text-primary-500' : 'text-gray-600'
