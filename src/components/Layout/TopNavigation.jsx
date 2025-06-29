@@ -66,7 +66,7 @@ function TopNavigation({ onSettingsClick }) {
                 </button>
               </>
             ) : (
-              <button
+              <>
                 {/* Bolt Badge */}
                 <a href="https://bolt.new/?rid=os72mi" 
                    target="_blank" 
@@ -78,12 +78,14 @@ function TopNavigation({ onSettingsClick }) {
                   />
                 </a>
                 
-                onClick={() => setShowAuthModal(true)}
-                className="flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <FiUser className="text-lg" />
-                <span>Sign In</span>
-              </button>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <FiUser className="text-lg" />
+                  <span>Sign In</span>
+                </button>
+              </>
             )}
           </div>
         </div>
