@@ -48,7 +48,7 @@ function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div className="text-2xl font-bold gradient-text">
-                CreatorSpace
+                SuperTribe
               </div>
               <button
                 onClick={handleClose}
