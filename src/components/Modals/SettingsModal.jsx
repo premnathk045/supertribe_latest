@@ -156,11 +156,11 @@ function SettingsModal({ isOpen, onClose }) {
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handlePaymentSettings}
-                  className="w-full p-4 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-xl transition-all text-left"
+                   className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-white/20 rounded-lg">
-                      <FiCreditCard className="text-xl text-white" />
+                    <div className="p-2 bg-white rounded-lg">
+                      <FiCreditCard className="text-xl text-primary-500" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-white">Payment Methods</h3>
