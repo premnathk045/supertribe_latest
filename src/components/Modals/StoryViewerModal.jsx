@@ -307,12 +307,14 @@ function StoryViewerModal({ isOpen, story, onClose }) {
                   className="w-8 h-8 rounded-full object-cover border-2 border-white"
                 />
                 <div>
-                  <h3 className="text-white font-semibold text-sm">
-                    {currentStory.profiles?.display_name || currentStory.profiles?.username || 'Unknown'}
-                  </h3>
-                  {currentStory.profiles?.is_verified && (
-                    <VerifiedBadge size="xs" className="ml-1" />
-                  )}
+                  <div>
+                      <h3 className="text-white font-semibold text-sm">
+                      {currentStory.profiles?.display_name || currentStory.profiles?.username || 'Unknown'}
+                    </h3>
+                    {currentStory.profiles?.is_verified && (
+                      <VerifiedBadge size="xs" className="ml-1" />
+                    )}
+                  </div>
                   <p className="text-white/70 text-xs">
                     {formatDistanceToNow(new Date(currentStory.created_at), { addSuffix: true })}
                   </p>
