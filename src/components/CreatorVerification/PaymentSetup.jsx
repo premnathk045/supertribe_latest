@@ -51,7 +51,7 @@ function PaymentSetup({ onComplete, loading }) {
           <div className="flex justify-between items-start mb-8">
             <div>
               <p className="text-sm opacity-80">Demo Card</p>
-              <p className="text-lg font-semibold">CreatorSpace</p>
+              <p className="text-lg font-semibold">SuperTribe</p>
             </div>
             <div className="text-right">
               <div className="w-8 h-8 bg-white/20 rounded-full"></div>
