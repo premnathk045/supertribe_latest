@@ -32,14 +32,6 @@ function TopNavigation({ onSettingsClick }) {
                   to="/notifications"
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
                 >
-                  <FiHeart className="text-xl" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-                </Link>
-                
-                <button 
-                  onClick={onSettingsClick}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group"
-                >
                   <FiBell className="text-xl" />
                   {unreadCount > 0 && (
                     <motion.div 
@@ -53,6 +45,13 @@ function TopNavigation({ onSettingsClick }) {
                     </motion.div>
                   )}
                   <span className="absolute inset-0 rounded-full bg-gray-200 opacity-0 group-hover:opacity-10 transition-opacity"></span>
+                </Link>
+                
+                <button 
+                  onClick={onSettingsClick}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group"
+                >
+                  <FiSettings className="text-xl" />
                 </button>
               </>
             ) : (
