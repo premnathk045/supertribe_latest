@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
-import { FiEdit3, FiCamera } from 'react-icons/fi'
+import { FiEdit3, FiCamera, FiUpload } from 'react-icons/fi'
 import VerifiedBadge from '../../VerifiedBadge'
+import { useState, useRef } from 'react'
 
 function ProfileHeader({
   profileData, 
@@ -13,44 +14,78 @@ function ProfileHeader({
   onOpenFollowers,
   onOpenFollowing
 }) {
+  const [isHovering, setIsHovering] = useState(false)
+  const fileInputRef = useRef(null)
+  
+  const handleProfilePictureClick = () => {
+    if (isEditing && isOwnProfile) {
+      fileInputRef.current?.click()
+    }
+  }
+  
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Create a preview URL
+      const previewUrl = URL.createObjectURL(file)
+      // Update the form data with the new URL
+      handleEditInputChange('avatar_url', previewUrl)
+    }
+  }
+
   return (
     <div className="flex items-center space-x-6 mb-6">
-      <div className="relative">
+      <div className="relative" style={{ width: '150px', height: '150px' }}>
         {isEditing ? (
-          <div className="relative group">
+          <div 
+            className="relative cursor-pointer"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onClick={handleProfilePictureClick}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/jpg"
+              className="hidden"
+              onChange={handleFileChange}
+            />
             <img
               src={editForm.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
               alt={editForm.display_name}
-              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+              className="w-[150px] h-[150px] rounded-full object-cover border-4 border-white shadow-lg"
               onError={(e) => {
                 e.target.src = 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'
               }}
             />
-            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer">
-              <VerifiedBadge size="md" />
-            </div>
-            <button className="absolute -bottom-1 -right-1 bg-primary-500 hover:bg-primary-600 text-white rounded-full p-2 shadow-lg transition-colors duration-200">
-              <FiEdit3 className="text-sm" />
-            </button>
+            <motion.div 
+              className="absolute inset-0 bg-black/50 rounded-full flex flex-col items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovering ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <FiUpload className="text-white text-2xl mb-2" />
+              <span className="text-white text-sm font-medium">Change Photo</span>
+            </motion.div>
           </div>
         ) : (
           <img
             src={profileData.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
             alt={profileData.display_name}
-            className="w-20 h-20 rounded-full object-cover"
+            className="w-[150px] h-[150px] rounded-full object-cover border-4 border-white shadow-lg"
             onError={(e) => {
               e.target.src = 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'
             }}
           />
         )}
         {profileData.user_type === 'creator' && profileData.is_verified && (
-          <div className="absolute -bottom-1 -right-1">
-            <VerifiedBadge size="lg" className="border-2 border-white rounded-full" />
+          <div className="absolute bottom-2 right-2">
+            <VerifiedBadge size="lg" className="border-2 border-white rounded-full shadow-md" />
           </div>
         )}
       </div>
       
-      <div className="flex-1">
+      <div className="flex-1 ml-4">
         {isEditing ? (
           <div className="text-sm text-gray-600">
             <p>Edit your profile information below</p>
@@ -71,7 +106,7 @@ function ProfileHeader({
         
         {/* Stats (merged from ProfileStats component) */}
         <div className="flex space-x-6 text-sm">
-          <div className="text-center">
+          <div className="text-center cursor-pointer">
             <div className="font-bold text-gray-900">{stats.postCount}</div>
             <div className="text-gray-600">Posts</div>
           </div>
