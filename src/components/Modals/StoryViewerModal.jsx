@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiX, FiChevronLeft, FiChevronRight, FiVolume2, FiVolumeX } from 'react-icons/fi'
 import { useStories } from '../../hooks/useStories'
 import { formatDistanceToNow } from 'date-fns'
 import VerifiedBadge from '../VerifiedBadge'
@@ -9,7 +9,10 @@ function StoryViewerModal({ isOpen, story, onClose }) {
   // story: { userId, stories }
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [isMuted, setIsMuted] = useState(true)
+  const [isPaused, setIsPaused] = useState(false)
   const isMounted = useRef(false)
+  const videoRef = useRef(null)
   const closeRequested = useRef(false)
 
   // Get the stories for the selected user
@@ -27,31 +30,50 @@ function StoryViewerModal({ isOpen, story, onClose }) {
     if (!isOpen || !userStories.length) return
     setCurrentStoryIndex(0)
     setProgress(0)
+    setIsPaused(false)
     closeRequested.current = false
   }, [isOpen, story])
 
   useEffect(() => {
     if (!isOpen) return
 
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          // Auto advance to next story
-          if (currentStoryIndex < userStories.length - 1) {
-            setCurrentStoryIndex(currentStoryIndex + 1)
-            return 0
-          } else {
-            // Instead of calling onClose directly, set a flag
-            closeRequested.current = true
-            return 0
+    // Reset progress when changing stories
+    setProgress(0)
+
+    // Handle video playback for video stories
+    if (currentStory?.content_type === 'video' && videoRef.current) {
+      videoRef.current.currentTime = 0
+      if (!isPaused) {
+        videoRef.current.play().catch(err => {
+          console.error('Failed to play video:', err)
+        })
+      }
+      return;
+    }
+
+    // For non-video stories, use timer for progress
+    let timer;
+    if (!isPaused) {
+      timer = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            // Auto advance to next story
+            if (currentStoryIndex < userStories.length - 1) {
+              setCurrentStoryIndex(currentStoryIndex + 1)
+              return 0
+            } else {
+              // Instead of calling onClose directly, set a flag
+              closeRequested.current = true
+              return 0
+            }
           }
-        }
-        return prev + 2 // 5 second duration (100 / 2 = 50 intervals)
-      })
-    }, 100)
+          return prev + 2 // 5 second duration (100 / 2 = 50 intervals)
+        })
+      }, 100)
+    }
 
     return () => clearInterval(timer)
-  }, [isOpen, currentStoryIndex, userStories])
+  }, [isOpen, currentStoryIndex, userStories, isPaused])
 
   // Effect to handle close after progress completes
   useEffect(() => {
@@ -75,6 +97,29 @@ function StoryViewerModal({ isOpen, story, onClose }) {
     } else {
       // Instead of calling onClose directly, set a flag
       closeRequested.current = true
+    }
+  }
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  }
+
+  const handleTouchStart = () => {
+    setIsPaused(true);
+    if (videoRef.current && videoRef.current.pause) {
+      videoRef.current.pause();
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsPaused(false);
+    if (videoRef.current && videoRef.current.play) {
+      videoRef.current.play().catch(err => {
+        console.error('Failed to resume video:', err)
+      });
     }
   }
 
@@ -104,18 +149,46 @@ function StoryViewerModal({ isOpen, story, onClose }) {
           </div>
         </div>
       )
-    } else if (story.file_type && story.file_type.startsWith('video/')) {
+    } else if (story.file_type && story.file_type.startsWith('video/') || 
+               story.content_type === 'video') {
       // Render video
       return (
-        <video
-          src={story.media_url}
-          controls
-          autoPlay
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            console.error('Failed to load story media:', story.media_url)
-          }}
-        />
+        <div className="relative w-full h-full flex items-center justify-center bg-black">
+          <video
+            ref={videoRef}
+            src={story.media_url}
+            className="w-full h-full object-contain"
+            autoPlay={true}
+            playsInline={true}
+            controls={false}
+            muted={isMuted}
+            loop={false}
+            onTimeUpdate={(e) => {
+              if (e.target.duration) {
+                const percentage = (e.target.currentTime / e.target.duration) * 100;
+                setProgress(percentage);
+              }
+            }}
+            onEnded={goToNext}
+            onError={(e) => {
+              console.error('Failed to load story media:', story.media_url, e)
+            }}
+          />
+          
+          {/* Mute/Unmute Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleMute();
+            }}
+            className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/30 rounded-full flex items-center justify-center"
+          >
+            {isMuted ? 
+              <FiVolumeX className="text-white text-lg" /> : 
+              <FiVolume2 className="text-white text-lg" />
+            }
+          </button>
+        </div>
       )
     } else {
       // Render image
@@ -123,7 +196,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
         <img
           src={story.media_url}
           alt="Story"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           onError={(e) => {
             console.error('Failed to load story media:', story.media_url)
             e.target.src = story.profiles?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400'
@@ -150,8 +223,10 @@ function StoryViewerModal({ isOpen, story, onClose }) {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.9 }}
-            className="relative w-full max-w-sm h-full max-h-screen bg-black"
+            className="relative w-full h-full max-w-sm max-h-screen bg-black"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             {/* Progress Bars */}
             <div className="absolute top-4 left-4 right-4 z-10 flex space-x-1">
@@ -216,17 +291,26 @@ function StoryViewerModal({ isOpen, story, onClose }) {
             {/* Navigation Areas */}
             <button
               className="absolute left-0 top-0 w-1/3 h-full z-10"
-              onClick={goToPrevious}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
             />
             <button
               className="absolute right-0 top-0 w-1/3 h-full z-10"
-              onClick={goToNext}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
             />
 
             {/* Navigation Buttons */}
             {currentStoryIndex > 0 && (
               <button
-                onClick={goToPrevious}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-black/50 text-white rounded-full"
               >
                 <FiChevronLeft className="text-xl" />
@@ -235,7 +319,10 @@ function StoryViewerModal({ isOpen, story, onClose }) {
             
             {currentStoryIndex < userStories.length - 1 && (
               <button
-                onClick={goToNext}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-black/50 text-white rounded-full"
               >
                 <FiChevronRight className="text-xl" />
