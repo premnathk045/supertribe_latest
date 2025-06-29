@@ -140,6 +140,7 @@ function PostsList({ posts, profileData }) {
             
             <PostOptionsMenu
               isOpen={menuOpenPostId === post.id}
+              onOpen={() => setMenuOpenPostId(post.id)}
               onClose={() => setMenuOpenPostId(null)}
               onDelete={() => setPostToDelete(post.id)}
               onEdit={() => handleEditPost(post.id)}

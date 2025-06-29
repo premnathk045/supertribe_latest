@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiMoreHorizontal, FiTrash2, FiEdit, FiShare, FiFlag } from 'react-icons/fi'
 
-function PostOptionsMenu({ isOpen, onClose, onDelete, onEdit, onShare, onReport, isCreator }) {
+function PostOptionsMenu({ isOpen, onClose, onOpen, onDelete, onEdit, onShare, onReport, isCreator }) {
   return (
     <div className="relative">
       <button
-        onClick={isOpen ? onClose : onClose}
+        onClick={isOpen ? onClose : onOpen}
         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
       >
         <FiMoreHorizontal className="text-gray-600" />

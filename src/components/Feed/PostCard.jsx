@@ -249,6 +249,7 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
         
         <PostOptionsMenu
           isOpen={menuOpen}
+          onOpen={() => setMenuOpen(true)}
           onClose={() => setMenuOpen(false)}
           onDelete={handleDeletePost}
           onEdit={handleEditPost}
