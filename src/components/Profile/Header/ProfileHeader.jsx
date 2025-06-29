@@ -35,7 +35,7 @@ function ProfileHeader({
 
   return (
     <div className="flex items-center space-x-6 mb-6">
-      <div className="relative" style={{ width: '150px', height: '150px' }}>
+      <div className="relative" style={{ width: '75px', height: '75px' }}>
         {isEditing ? (
           <div 
             className="relative cursor-pointer"
