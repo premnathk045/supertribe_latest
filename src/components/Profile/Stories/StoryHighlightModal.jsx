@@ -74,11 +74,11 @@ function StoryHighlightModal({
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="w-full max-w-md bg-white rounded-xl overflow-hidden"
+            className="w-full max-w-md bg-white rounded-xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
               <h3 className="font-semibold text-gray-900">
                 {step === 1 ? 'Create Highlight' : 'Customize Highlight'}
               </h3>
@@ -101,10 +101,10 @@ function StoryHighlightModal({
             </div>
             
             {/* Content */}
-            <div className="p-4">
+            <div className="p-4 flex-1 overflow-y-auto">
               {/* Step 1: Select Stories */}
               {step === 1 && (
-                <div>
+                <div className="h-full">
                   <p className="text-sm text-gray-600 mb-4">
                     Select up to 5 stories for your highlight.
                   </p>
@@ -114,41 +114,43 @@ function StoryHighlightModal({
                       <p className="text-gray-500">You don't have any stories yet</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-4">
                       {stories.map(story => (
                         <motion.div
                           key={story.id}
                           whileTap={{ scale: 0.95 }}
-                          className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer ${
+                          className={`relative w-full pb-[100%] rounded-lg overflow-hidden cursor-pointer ${
                             selectedStories.some(s => s.id === story.id)
                               ? 'ring-2 ring-primary-500'
                               : 'ring-1 ring-gray-200'
                           }`}
                           onClick={() => toggleStorySelection(story)}
                         >
-                          {story.content_type === 'text' ? (
-                            <div 
-                              className="w-full h-full flex items-center justify-center text-white"
-                              style={{ 
-                                background: story.background_style?.value || '#000000'
-                              }}
-                            >
-                              <span className="text-xs truncate p-2">
-                                {story.text_content}
-                              </span>
-                            </div>
-                          ) : (
-                            <img
-                              src={story.media_url || story.thumbnail_url}
-                              alt="Story"
-                              className="w-full h-full object-cover"
-                            />
-                          )}
+                          <div className="absolute inset-0">
+                            {story.content_type === 'text' ? (
+                              <div 
+                                className="w-full h-full flex items-center justify-center text-white p-2"
+                                style={{ 
+                                  background: story.background_style?.value || '#000000'
+                                }}
+                              >
+                                <span className="text-xs text-center truncate leading-tight">
+                                  {story.text_content}
+                                </span>
+                              </div>
+                            ) : (
+                              <img
+                                src={story.media_url || story.thumbnail_url}
+                                alt="Story"
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
                           
                           {/* Selection checkmark */}
                           {selectedStories.some(s => s.id === story.id) && (
-                            <div className="absolute top-1 right-1 bg-primary-500 rounded-full w-5 h-5 flex items-center justify-center">
-                              <FiCheck className="text-white text-xs" />
+                            <div className="absolute top-2 right-2 bg-primary-500 rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                              <FiCheck className="text-white text-sm" />
                             </div>
                           )}
                         </motion.div>
@@ -160,17 +162,18 @@ function StoryHighlightModal({
               
               {/* Step 2: Customize Highlight */}
               {step === 2 && (
-                <div>
-                  <div className="flex flex-col items-center mb-6">
-                    <div className="w-24 h-24 rounded-full mb-4 overflow-hidden">
+                <div className="h-full">
+                  <div className="flex flex-col items-center space-y-6">
+                    {/* Cover Preview */}
+                    <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-gray-200">
                       {coverStory?.content_type === 'text' ? (
                         <div 
-                          className="w-full h-full flex items-center justify-center text-white"
+                          className="w-full h-full flex items-center justify-center text-white p-2"
                           style={{ 
                             background: coverStory.background_style?.value || '#000000'
                           }}
                         >
-                          <span className="text-xs truncate p-2">
+                          <span className="text-xs text-center truncate leading-tight">
                             {coverStory.text_content}
                           </span>
                         </div>
@@ -183,7 +186,8 @@ function StoryHighlightModal({
                       )}
                     </div>
                     
-                    <div className="text-center mb-4">
+                    {/* Title Input */}
+                    <div className="w-full">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Highlight Name
                       </label>
@@ -200,36 +204,41 @@ function StoryHighlightModal({
                       </p>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {/* Cover Selection */}
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
                         Cover Photo
                       </label>
-                      <div className="grid grid-cols-5 gap-2">
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                         {selectedStories.map(story => (
                           <motion.div
                             key={story.id}
                             whileTap={{ scale: 0.95 }}
-                            className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer ${
+                            className={`relative w-full pb-[100%] rounded-lg overflow-hidden cursor-pointer ${
                               coverStory?.id === story.id
                                 ? 'ring-2 ring-primary-500'
                                 : 'ring-1 ring-gray-200'
                             }`}
                             onClick={() => setCoverStory(story)}
                           >
-                            {story.content_type === 'text' ? (
-                              <div 
-                                className="w-full h-full flex items-center justify-center text-white"
-                                style={{ 
-                                  background: story.background_style?.value || '#000000'
-                                }}
-                              ></div>
-                            ) : (
-                              <img
-                                src={story.media_url || story.thumbnail_url}
-                                alt="Story"
-                                className="w-full h-full object-cover"
-                              />
-                            )}
+                            <div className="absolute inset-0">
+                              {story.content_type === 'text' ? (
+                                <div 
+                                  className="w-full h-full flex items-center justify-center text-white"
+                                  style={{ 
+                                    background: story.background_style?.value || '#000000'
+                                  }}
+                                >
+                                  <span className="text-xs">•</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={story.media_url || story.thumbnail_url}
+                                  alt="Story"
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
                           </motion.div>
                         ))}
                       </div>
@@ -240,7 +249,7 @@ function StoryHighlightModal({
             </div>
             
             {/* Footer */}
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
               <button
                 onClick={handleNext}
                 disabled={step === 1 ? selectedStories.length === 0 : isLoading}
