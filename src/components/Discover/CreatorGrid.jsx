@@ -70,7 +70,6 @@ function CreatorGrid({ creators, viewMode }) {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 </Link>
-                <VerifiedBadge size="sm" className="flex-shrink-0" />
               </div>
               
               <div className="flex-1 min-w-0">
@@ -79,13 +78,9 @@ function CreatorGrid({ creators, viewMode }) {
                     <h4 className="font-semibold text-gray-900 truncate">{creator.displayName}</h4>
                   </Link>
                   {creator.isVerified && (
-                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs">✓</span>
-                    </div>
+                    <VerifiedBadge size="sm" className="flex-shrink-0" />
                   )}
-                  {creator.isPremium && (
-                    <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex-shrink-0"></div>
-                  )}
+
                 </div>
                 <Link to={`/user/${creator.username}`} className="hover:underline">
                   <p className="text-sm text-gray-500 truncate">@{creator.username}</p>
@@ -147,9 +142,6 @@ function CreatorGrid({ creators, viewMode }) {
             </Link>
             {creator.isVerified && (
               <VerifiedBadge size="sm" />
-            )}
-            {creator.isPremium && (
-              <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
             )}
           </div>
           
