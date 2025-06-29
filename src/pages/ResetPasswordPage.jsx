@@ -75,7 +75,7 @@ function ResetPasswordPage() {
       >
         <div className="flex items-center justify-center p-6 border-b border-gray-100">
           <div className="text-2xl font-bold gradient-text">
-            CreatorSpace
+            SuperTribe
           </div>
         </div>
 
