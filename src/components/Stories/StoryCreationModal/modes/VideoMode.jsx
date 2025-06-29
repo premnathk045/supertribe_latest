@@ -123,8 +123,8 @@ function VideoMode({ onCapture, onPreview }) {
       'video/webm;codecs=h264',
       'video/webm',
       'video/mp4;codecs=h264',
-      'video/quicktime',
-      'video/mp4;codecs=hvc1',
+      // 'video/quicktime',
+      // 'video/mp4;codecs=hvc1',
       'video/mp4'
     ]
 
