@@ -307,7 +307,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
                   className="w-8 h-8 rounded-full object-cover border-2 border-white"
                 />
                 <div>
-                  <div>
+                  <div className="flex items-center space-x-1">
                       <h3 className="text-white font-semibold text-sm">
                       {currentStory.profiles?.display_name || currentStory.profiles?.username || 'Unknown'}
                     </h3>
