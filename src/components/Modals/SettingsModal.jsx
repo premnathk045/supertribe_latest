@@ -163,7 +163,7 @@ function SettingsModal({ isOpen, onClose }) {
                       <FiCreditCard className="text-xl text-primary-500" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white">Payment Methods</h3>
+                      <h3 className="font-semibold text-gray-900">Payment Methods</h3>
                       <p className="text-sm text-white/90">
                         {paymentMethodsLoading 
                           ? 'Loading payment methods...' 
