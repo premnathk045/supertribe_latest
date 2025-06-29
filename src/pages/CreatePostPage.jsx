@@ -446,6 +446,7 @@ function CreatePostPage() {
         </div>
       </div>
 
+      <div className="max-w-lg mx-auto p-4 space-y-6">
         {/* General Error */}
         {errors.general && (
           <motion.div
