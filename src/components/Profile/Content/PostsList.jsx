@@ -1,18 +1,32 @@
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
-import { FiHeart, FiMessageCircle, FiShare, FiBookmark, FiMoreHorizontal } from 'react-icons/fi'
+import { FiHeart, FiMessageCircle, FiShare, FiBookmark } from 'react-icons/fi'
 import { useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { usePremiumContent } from '../../../hooks/usePremiumContent'
+import { supabase } from '../../../lib/supabase'
 import VerifiedBadge from '../../VerifiedBadge'
 import PollDisplay from '../../Feed/PollDisplay'
 import PaymentMethodModal from '../../Modals/PaymentMethodModal'
+import PostOptionsMenu from '../../UI/PostOptionsMenu'
+import DeletePostModal from './DeletePostModal'
+import Toast from '../../UI/Toast'
 
 function PostsList({ posts, profileData }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [menuOpenPostId, setMenuOpenPostId] = useState(null)
+  const [postToDelete, setPostToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [localPosts, setLocalPosts] = useState(posts)
+  
+  // Update local posts when props change
+  if (JSON.stringify(posts) !== JSON.stringify(localPosts)) {
+    setLocalPosts(posts)
+  }
   
   const handlePostLike = (postId) => {
     console.log('Like post:', postId)
@@ -44,10 +58,58 @@ function PostsList({ posts, profileData }) {
     console.log(`Vote for option ${optionIndex} in poll ${postId}`)
     // Would implement poll vote functionality here
   }
+
+  const handleDeletePost = async () => {
+    if (!postToDelete || !user) return
+    
+    setIsDeleting(true)
+    
+    try {
+      // Delete post from Supabase
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postToDelete)
+        .eq('user_id', user.id)
+      
+      if (error) throw error
+      
+      // Remove post from local state
+      setLocalPosts(prev => prev.filter(post => post.id !== postToDelete))
+      
+      // Show success toast
+      setToast({
+        message: 'Post deleted successfully',
+        type: 'success'
+      })
+      
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      
+      // Show error toast
+      setToast({
+        message: 'Failed to delete post',
+        type: 'error'
+      })
+    } finally {
+      setIsDeleting(false)
+      setPostToDelete(null)
+    }
+  }
+
+  const handleEditPost = (postId) => {
+    // Navigate to edit post page or open edit modal
+    console.log('Edit post:', postId)
+  }
+
+  const handleReportPost = () => {
+    // Show report dialog
+    console.log('Report post')
+  }
   
   return (
     <div className="space-y-4 pb-8">
-      {posts.map((post, index) => (
+      {localPosts.map((post, index) => (
         <motion.div
           key={post.id}
           initial={{ opacity: 0, y: 20 }}
@@ -76,9 +138,15 @@ function PostsList({ posts, profileData }) {
               </div>
             </Link>
             
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <FiMoreHorizontal className="text-gray-600" />
-            </button>
+            <PostOptionsMenu
+              isOpen={menuOpenPostId === post.id}
+              onClose={() => setMenuOpenPostId(null)}
+              onDelete={() => setPostToDelete(post.id)}
+              onEdit={() => handleEditPost(post.id)}
+              onShare={() => handlePostShare(post)}
+              onReport={handleReportPost}
+              isCreator={user && user.id === post.user_id}
+            />
           </div>
           
           {/* Post Content Section */}
@@ -205,13 +273,30 @@ function PostsList({ posts, profileData }) {
         </motion.div>
       ))}
       
+      {/* Delete Post Confirmation Modal */}
+      <DeletePostModal
+        isOpen={!!postToDelete}
+        onClose={() => setPostToDelete(null)}
+        onConfirm={handleDeletePost}
+        isDeleting={isDeleting}
+      />
+      
       {/* Payment Method Modal */}
       <PaymentMethodModal 
         isOpen={showPaymentModal} 
         onClose={() => setShowPaymentModal(false)} 
       />
       
-      {posts.length === 0 && (
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
+      {localPosts.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <div className="text-6xl mb-4">📝</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">

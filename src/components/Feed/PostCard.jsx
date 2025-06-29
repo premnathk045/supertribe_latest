@@ -4,8 +4,7 @@ import {
   FiHeart, 
   FiMessageCircle, 
   FiShare, 
-  FiBookmark,
-  FiMoreHorizontal,
+  FiBookmark, 
   FiLock,
   FiVolume2,
   FiVolumeX,
@@ -17,9 +16,10 @@ import { useAuth } from '../../contexts/AuthContext'
 import { usePremiumContent } from '../../hooks/usePremiumContent'
 import PaymentMethodModal from '../Modals/PaymentMethodModal'
 import VerifiedBadge from '../VerifiedBadge'
+import PostOptionsMenu from '../UI/PostOptionsMenu'
 import PollDisplay from './PollDisplay'
 
-function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVote, isInView = true }) {
+function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVote, onDelete, isInView = true }) {
   const { user } = useAuth()
   const { 
     unlockContent, 
@@ -35,6 +35,7 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
   const [showControls, setShowControls] = useState(false)
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [isDoubleTabbed, setIsDoubleTabbed] = useState(false)
   const videoRef = useRef(null)
   const progressInterval = useRef(null)
@@ -166,6 +167,22 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
     setShowControls(true)
   }
 
+  const handleDeletePost = () => {
+    if (onDelete) {
+      onDelete(post.id)
+    }
+  }
+
+  const handleEditPost = () => {
+    // Navigate to edit post page or open edit modal
+    console.log('Edit post:', post.id)
+  }
+
+  const handleReportPost = () => {
+    // Show report dialog
+    console.log('Report post:', post.id)
+  }
+
   const handleDoubleClick = (e) => {
     e.stopPropagation()
     setIsDoubleTabbed(true)
@@ -203,31 +220,41 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <img
-              src={post.user?.avatar || post.profiles?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=40'}
-              alt={post.user?.displayName || post.profiles?.display_name || 'User'}
-              className="w-8 h-8 rounded-full object-cover ring-2 ring-gradient-to-r from-purple-500 to-pink-500 p-0.5"
-            />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 -z-10"></div>
+            <Link to={`/user/${post.user?.username || post.profiles?.username}`}>
+              <img
+                src={post.user?.avatar || post.profiles?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=40'}
+                alt={post.user?.displayName || post.profiles?.display_name || 'User'}
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-gradient-to-r from-purple-500 to-pink-500 p-0.5"
+              />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 -z-10"></div>
+            </Link>
           </div>
           <div>
-            <div className="flex items-center space-x-1">
-              <h3 className="font-semibold text-sm text-gray-900">
-                {post.user?.displayName || post.profiles?.display_name || post.user?.username || post.profiles?.username || 'Unknown'}
-              </h3>
-              {(post.user?.isVerified || post.profiles?.is_verified) && (
-                <VerifiedBadge size="xs" />
-              )}
-            </div>
+            <Link to={`/user/${post.user?.username || post.profiles?.username}`}>
+              <div className="flex items-center space-x-1">
+                <h3 className="font-semibold text-sm text-gray-900">
+                  {post.user?.displayName || post.profiles?.display_name || post.user?.username || post.profiles?.username || 'Unknown'}
+                </h3>
+                {(post.user?.isVerified || post.profiles?.is_verified) && (
+                  <VerifiedBadge size="xs" />
+                )}
+              </div>
+            </Link>
             <p className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(post.createdAt || post.created_at), { addSuffix: true })}
             </p>
           </div>
         </div>
         
-        <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-          <FiMoreHorizontal className="text-gray-600 w-5 h-5" />
-        </button>
+        <PostOptionsMenu
+          isOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onDelete={handleDeletePost}
+          onEdit={handleEditPost}
+          onShare={() => onShare(post)}
+          onReport={handleReportPost}
+          isCreator={user && (user.id === post.user_id || user.id === post.user?.id)}
+        />
       </div>
 
       {/* Media Container */}

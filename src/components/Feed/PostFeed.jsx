@@ -6,8 +6,9 @@ import LoadingSpinner from '../UI/LoadingSpinner'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import Toast from '../UI/Toast'
 
-function PostFeed({ onPostClick, onShareClick }) {
+function PostFeed({ onPostClick, onShareClick, onDeletePost }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
@@ -16,6 +17,7 @@ function PostFeed({ onPostClick, onShareClick }) {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [page, setPage] = useState(0)
+  const [toast, setToast] = useState(null)
   const [visiblePosts, setVisiblePosts] = useState(new Set())
   
   const { ref: loadMoreRef, inView: loadMoreInView } = useInView({
@@ -373,6 +375,45 @@ function PostFeed({ onPostClick, onShareClick }) {
     }
   }
 
+  // Handle post deletion
+  const handlePostDelete = async (postId) => {
+    if (!user) return
+    
+    try {
+      // Delete post from Supabase
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id)
+      
+      if (error) throw error
+      
+      // Remove post from local state
+      setPosts(prev => prev.filter(post => post.id !== postId))
+      
+      // Show success toast
+      setToast({
+        message: 'Post deleted successfully',
+        type: 'success'
+      })
+      
+      // Call parent handler if provided
+      if (onDeletePost) {
+        onDeletePost(postId)
+      }
+      
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      
+      // Show error toast
+      setToast({
+        message: 'Failed to delete post',
+        type: 'error'
+      })
+    }
+  }
+
   // Skeleton loader component
   const SkeletonPost = () => (
     <div className="bg-white shadow-sm border border-gray-200 mb-6 overflow-hidden animate-pulse">
@@ -450,6 +491,7 @@ function PostFeed({ onPostClick, onShareClick }) {
             onComment={() => handlePostClick(post)}
             onShare={() => onShareClick ? onShareClick(post) : handleShare(post)}
             onPollVote={handlePollVote}
+            onDelete={handlePostDelete}
             onClick={() => handlePostClick(post)}
           />
         </motion.div>
@@ -484,6 +526,15 @@ function PostFeed({ onPostClick, onShareClick }) {
             Be the first to share something amazing!
           </p>
         </div>
+      )}
+      
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   )
