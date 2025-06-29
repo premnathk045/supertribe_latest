@@ -14,14 +14,21 @@ import {
 } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '../../contexts/AuthContext'
-import usePremiumContent from '../../hooks/usePremiumContent'
+import { usePremiumContent } from '../../hooks/usePremiumContent'
 import PaymentMethodModal from '../Modals/PaymentMethodModal'
 import VerifiedBadge from '../VerifiedBadge'
 import PollDisplay from './PollDisplay'
 
 function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVote, isInView = true }) {
   const { user } = useAuth()
-  const { unlockContent, unlocking, showPaymentModal, setShowPaymentModal } = usePremiumContent()
+  const { 
+    unlockContent, 
+    unlocking, 
+    showPaymentModal, 
+    setShowPaymentModal, 
+    isCreator, 
+    hasPurchased 
+  } = usePremiumContent(post.id)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -72,6 +79,9 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
   const currentMedia = media[currentMediaIndex]
   const isVideo = currentMedia?.type === 'video'
   const hasPoll = post.poll && Object.keys(post.poll).length > 0
+
+  // Determine if content should be locked
+  const shouldLockContent = post.is_premium && !isCreator && !hasPurchased
 
   const handleUnlockContent = async (e) => {
     e.stopPropagation()
@@ -222,8 +232,8 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
 
       {/* Media Container */}
       {!hasPoll && <div className="relative bg-black aspect-square overflow-hidden">
-        {/* Premium Content Overlay */}
-        {post.is_premium && !isCurrentPreview && (
+        {/* Premium Content Overlay - Only show if not creator and not purchased */}
+        {shouldLockContent && !isCurrentPreview && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex items-center justify-center">
             <div className="text-center text-white">
               <FiLock className="text-4xl mx-auto mb-3" />
@@ -231,10 +241,10 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
               <p className="text-sm opacity-90 mb-4">${post.price?.toFixed(2)}</p>
               <button 
                 onClick={handleUnlockContent}
-                className="bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
+                className="bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors disabled:opacity-70"
+                disabled={unlocking}
               >
-                {unlocking ? 'Processing...' : 'Unlock'}
-                Unlock
+                {unlocking ? 'Processing...' : isCreator ? 'View' : 'Unlock'}
               </button>
             </div>
           </div>

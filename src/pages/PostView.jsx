@@ -15,7 +15,7 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { formatDistanceToNow } from 'date-fns'
-import usePremiumContent from '../hooks/usePremiumContent'
+import { usePremiumContent } from '../hooks/usePremiumContent'
 import PaymentMethodModal from '../components/Modals/PaymentMethodModal'
 import VerifiedBadge from '../components/VerifiedBadge'
 
@@ -31,7 +31,14 @@ function PostView() {
   const { postId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { unlockContent, unlocking, showPaymentModal, setShowPaymentModal } = usePremiumContent()
+  const { 
+    unlockContent, 
+    unlocking, 
+    showPaymentModal, 
+    setShowPaymentModal, 
+    isCreator, 
+    hasPurchased 
+  } = usePremiumContent(postId)
   
   // State
   const [post, setPost] = useState(null)
@@ -373,6 +380,9 @@ function PostView() {
   // Check if current media is premium and should be locked
   const shouldLockCurrentMedia = () => {
     if (!post) return false
+
+    // If user is the creator or has purchased, don't lock
+    if (isCreator || hasPurchased) return false
     
     const media = getMediaArray()
     const currentMedia = media[currentMediaIndex]
@@ -508,12 +518,12 @@ function PostView() {
                   <FiLock className="text-3xl mx-auto mb-2" />
                   <p className="font-semibold">Premium Content</p>
                   <p className="text-sm opacity-90">${post.price?.toFixed(2)}</p>
-                  <button 
-                    className="mt-3 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
+                  <button
+                    className="mt-3 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors disabled:opacity-70"
                     onClick={handleUnlockContent}
                     disabled={unlocking}
                   >
-                    {unlocking ? 'Processing...' : 'Unlock Content'}
+                    {unlocking ? 'Processing...' : isCreator ? 'View Content' : 'Unlock Content'}
                   </button>
                 </div>
               </div>

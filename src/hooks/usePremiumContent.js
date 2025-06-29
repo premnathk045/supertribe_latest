@@ -2,13 +2,49 @@ import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import usePaymentMethods from './usePaymentMethods'
+import useCreatorAccess from './useCreatorAccess'
 
-export const usePremiumContent = () => {
+export const usePremiumContent = (postId) => {
   const { user } = useAuth()
   const { hasPaymentMethod, fetchPaymentMethods } = usePaymentMethods()
+  const { isCreator } = useCreatorAccess(postId)
   const [unlocking, setUnlocking] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [error, setError] = useState(null)
+  const [hasPurchased, setHasPurchased] = useState(false)
+
+  // Check if user has already purchased the content
+  const checkPurchaseStatus = useCallback(async (postId) => {
+    if (!user || !postId) return false
+    
+    try {
+      const { data, error } = await supabase
+        .from('content_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('post_id', postId)
+        .single()
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking purchase status:', error)
+        return false
+      }
+      
+      const purchased = !!data
+      setHasPurchased(purchased)
+      return purchased
+    } catch (err) {
+      console.error('Error checking purchase status:', err)
+      return false
+    }
+  }, [user])
+
+  // Check purchase status when postId changes
+  useEffect(() => {
+    if (postId) {
+      checkPurchaseStatus(postId)
+    }
+  }, [postId, checkPurchaseStatus])
 
   // Verify payment method before unlocking content
   const verifyPaymentMethod = useCallback(async () => {
@@ -28,6 +64,11 @@ export const usePremiumContent = () => {
   // Unlock premium content
   const unlockContent = useCallback(async (postId, price) => {
     if (!user) return { success: false, error: 'Authentication required' }
+
+    // If user is the creator, they can access their own content without payment
+    if (isCreator) {
+      return { success: true, isCreator: true }
+    }
     
     setUnlocking(true)
     setError(null)
@@ -111,7 +152,10 @@ export const usePremiumContent = () => {
     setShowPaymentModal,
     error,
     hasPaymentMethod,
-    verifyPaymentMethod
+    verifyPaymentMethod,
+    isCreator,
+    hasPurchased,
+    checkPurchaseStatus
   }
 }
 
