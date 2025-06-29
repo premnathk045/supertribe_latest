@@ -230,7 +230,7 @@ function SettingsModal({ isOpen, onClose }) {
 
             {/* Version Info */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-sm text-gray-500">CreatorSpace v1.0.0</p>
+              <p className="text-sm text-gray-500">SuperTribe v1.0.0</p>
             </div>
           </motion.div>
         </motion.div>
