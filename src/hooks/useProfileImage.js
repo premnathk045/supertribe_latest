@@ -1,16 +1,15 @@
 import { useState, useCallback } from 'react'
-import { uploadProfileImage, deleteProfileImage } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
 export const useProfileImage = () => {
-  const { user, updateUserProfile } = useAuth()
+  const { user } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [progress, setProgress] = useState(0)
 
   /**
-   * Upload a profile image and update the user's profile
+   * Upload a profile image to Supabase Storage
    * @param {File} file - The image file to upload
    * @param {string} oldImageUrl - The URL of the old image to delete (optional)
    * @returns {Promise<{success: boolean, url: string|null, error: string|null}>}
@@ -41,37 +40,53 @@ export const useProfileImage = () => {
         })
       }, 300)
 
-      // Upload the new image
-      const { url, path } = await uploadProfileImage(file, user.id)
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`
       
-      // Update the user's profile with the new avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: url })
-        .eq('id', user.id)
+      // Upload file to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+      
+      if (error) throw error
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
 
-      if (updateError) throw updateError
-
-      // Update the auth context
-      await updateUserProfile({ avatar_url: url })
-
-      // Delete the old image if provided
-      if (oldImageUrl) {
-        await deleteProfileImage(oldImageUrl)
+      // Delete old image if provided
+      if (oldImageUrl && oldImageUrl.includes('avatars')) {
+        try {
+          // Extract the path from the URL
+          const oldPath = oldImageUrl.split('avatars/')[1]
+          if (oldPath) {
+            await supabase.storage
+              .from('avatars')
+              .remove([oldPath])
+          }
+        } catch (deleteError) {
+          console.warn('Failed to delete old profile image:', deleteError)
+          // Continue even if delete fails
+        }
       }
 
       // Complete progress
       clearInterval(progressInterval)
       setProgress(100)
 
-      return { success: true, url, error: null }
+      return { success: true, url: publicUrl, error: null }
     } catch (err) {
       setError(err.message || 'Failed to upload image')
       return { success: false, url: null, error: err.message || 'Failed to upload image' }
     } finally {
       setUploading(false)
     }
-  }, [user, updateUserProfile])
+  }, [user])
 
   return {
     uploadImage,
