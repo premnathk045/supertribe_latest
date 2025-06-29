@@ -65,7 +65,7 @@ function CreatorGrid({ creators, viewMode }) {
               <div className="relative">
                 <Link to={`/user/${creator.username}`}>
                   <img
-                    src={creator.avatar}
+                    src={creator.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
                     alt={creator.displayName}
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -132,7 +132,7 @@ function CreatorGrid({ creators, viewMode }) {
         >
           <Link to={`/user/${creator.username}`} className="relative inline-block mb-3">
             <img
-              src={creator.avatar}
+              src={creator.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
               alt={creator.displayName}
               className="w-16 h-16 rounded-full object-cover mx-auto"
             />
