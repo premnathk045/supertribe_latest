@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiChevronLeft, FiChevronRight, FiPlay } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 
-function MediaCarousel({ media, currentIndex, onIndexChange, onClick }) {
+function MediaCarousel({ media, currentIndex, onIndexChange, onClick, renderCustomMedia }) {
   const [isPlaying, setIsPlaying] = useState(false)
 
   const nextMedia = () => {
@@ -35,7 +35,9 @@ function MediaCarousel({ media, currentIndex, onIndexChange, onClick }) {
           className="w-full h-full"
           onClick={onClick}
         >
-          {currentMedia.type === 'image' ? (
+          {renderCustomMedia && currentMedia.type === 'video' ? (
+            renderCustomMedia(currentMedia)
+          ) : currentMedia.type === 'image' ? (
             <img
               src={currentMedia.url}
               alt="Post media"
@@ -45,26 +47,11 @@ function MediaCarousel({ media, currentIndex, onIndexChange, onClick }) {
             <div className="relative w-full h-full">
               <video
                 src={currentMedia.url}
-                poster={currentMedia.thumbnail}
+                poster={currentMedia.thumbnail || ''}
                 className="w-full h-full object-cover"
                 controls={isPlaying}
                 onClick={() => setIsPlaying(!isPlaying)}
               />
-              {!isPlaying && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="bg-white/90 p-4 rounded-full shadow-lg"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setIsPlaying(true)
-                    }}
-                  >
-                    <FiPlay className="text-2xl text-gray-900 ml-1" />
-                  </motion.button>
-                </div>
-              )}
             </div>
           )}
         </motion.div>
@@ -126,6 +113,11 @@ function MediaCarousel({ media, currentIndex, onIndexChange, onClick }) {
       )}
     </div>
   )
+}
+
+// Default props
+MediaCarousel.defaultProps = {
+  renderCustomMedia: null
 }
 
 export default MediaCarousel

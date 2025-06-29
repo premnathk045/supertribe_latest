@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
+  FiArrowLeft,
   FiArrowLeft, 
   FiHeart, 
   FiMessageCircle, 
@@ -17,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { formatDistanceToNow } from 'date-fns'
 import { usePremiumContent } from '../hooks/usePremiumContent'
 import PaymentMethodModal from '../components/Modals/PaymentMethodModal'
+import VideoPlayer from '../components/Media/VideoPlayer'
 import VerifiedBadge from '../components/VerifiedBadge'
 
 // Import components
@@ -47,6 +49,7 @@ function PostView() {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [isVideoInView, setIsVideoInView] = useState(true)
   const [likeCount, setLikeCount] = useState(0)
   const [commentCount, setCommentCount] = useState(0)
   const [shareCount, setShareCount] = useState(0)
@@ -391,6 +394,16 @@ function PostView() {
     return post.is_premium && currentMedia && !currentMedia.isPreview
   }
   
+  // Check if current media is a video
+  const isCurrentMediaVideo = () => {
+    if (!post) return false
+    
+    const media = getMediaArray()
+    const currentMedia = media[currentMediaIndex]
+    
+    return currentMedia && currentMedia.type === 'video'
+  }
+  
   // Handle unlocking premium content
   const handleUnlockContent = async () => {
     if (!user) {
@@ -532,8 +545,35 @@ function PostView() {
             {/* Media Content */}
             <MediaCarousel
               media={media}
-              currentIndex={currentMediaIndex}
-              onIndexChange={setCurrentMediaIndex}
+              currentIndex={isCurrentMediaVideo() ? 0 : currentMediaIndex}
+              onIndexChange={(index) => {
+                if (!isCurrentMediaVideo()) {
+                  setCurrentMediaIndex(index)
+                }
+              }}
+              onClick={() => {}}
+              renderCustomMedia={(currentMedia) => {
+                if (currentMedia.type === 'video') {
+                  return (
+                    <VideoPlayer
+                      src={currentMedia.url}
+                      poster={currentMedia.thumbnail}
+                      autoPlay={isVideoInView}
+                      isInView={isVideoInView}
+                      className="w-full h-full aspect-video"
+                      onProgress={(progress, time) => {
+                        // You can use this to track video progress
+                        console.log(`Video progress: ${progress}%, time: ${time}s`)
+                      }}
+                      onEnded={() => {
+                        console.log('Video ended')
+                        // You can implement auto-advance to next media here if needed
+                      }}
+                    />
+                  )
+                }
+                return null
+              }}
             />
           </div>
         )}
