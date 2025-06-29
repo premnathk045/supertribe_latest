@@ -131,7 +131,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
     if (story.content_type === 'text') {
       return (
         <div 
-          className="w-full h-full flex items-center justify-center p-8"
+          className="absolute inset-0 w-full h-full flex items-center justify-center p-8"
           style={{ 
             background: story.background_style?.type === 'gradient' 
               ? story.background_style.value 
@@ -157,7 +157,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
                story.content_type === 'video') {
       // Render video with Instagram-like behavior
       return (
-        <div className="relative w-full h-full bg-black overflow-hidden">
+        <div className="absolute inset-0 w-full h-full bg-black overflow-hidden">
           <video
             ref={videoRef}
             src={story.media_url}
@@ -227,17 +227,26 @@ function StoryViewerModal({ isOpen, story, onClose }) {
         </div>
       )
     } else {
-      // Render image
+      // Render image with Instagram-like behavior
       return (
-        <img
-          src={story.media_url}
-          alt="Story"
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            console.error('Failed to load story media:', story.media_url)
-            e.target.src = story.profiles?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400'
-          }}
-        />
+        <div className="absolute inset-0 w-full h-full bg-black overflow-hidden">
+          <img
+            src={story.media_url}
+            alt="Story"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              // Ensure image fills viewport and maintains aspect ratio
+              minWidth: '100%',
+              minHeight: '100%',
+              width: 'auto',
+              height: 'auto'
+            }}
+            onError={(e) => {
+              console.error('Failed to load story media:', story.media_url)
+              e.target.src = story.profiles?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400'
+            }}
+          />
+        </div>
       )
     }
   }
@@ -318,7 +327,7 @@ function StoryViewerModal({ isOpen, story, onClose }) {
             </div>
 
             {/* Story Content */}
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="absolute inset-0 w-full h-full">
               {getStoryContent(currentStory)}
             </div>
 
