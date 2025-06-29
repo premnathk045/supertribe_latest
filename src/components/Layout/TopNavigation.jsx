@@ -28,6 +28,17 @@ function TopNavigation({ onSettingsClick }) {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {/* Bolt Badge */}
+                <a href="https://bolt.new/?rid=os72mi" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   className="block transition-all duration-300 hover:shadow-2xl">
+                  <img src="https://storage.bolt.army/black_circle_360x360.png" 
+                       alt="Built with Bolt.new badge" 
+                       className="w-8 h-8 rounded-full shadow-lg"
+                  />
+                </a>
+                
                 <Link 
                   to="/notifications"
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
@@ -56,6 +67,17 @@ function TopNavigation({ onSettingsClick }) {
               </>
             ) : (
               <button
+                {/* Bolt Badge */}
+                <a href="https://bolt.new/?rid=os72mi" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   className="block transition-all duration-300 hover:shadow-2xl">
+                  <img src="https://storage.bolt.army/black_circle_360x360.png" 
+                       alt="Built with Bolt.new badge" 
+                       className="w-8 h-8 rounded-full shadow-lg"
+                  />
+                </a>
+                
                 onClick={() => setShowAuthModal(true)}
                 className="flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
