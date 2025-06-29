@@ -446,16 +446,6 @@ function CreatePostPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto p-4 space-y-6">
-        {/* Debug Panel - Remove this in production */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="font-semibold text-yellow-800 mb-2">Debug Panel</h3>
-          <p className="text-sm text-yellow-700 mb-3">
-            This panel helps debug post creation issues. Remove in production.
-          </p>
-          <SupabaseDebug />
-        </div>
-
         {/* General Error */}
         {errors.general && (
           <motion.div
