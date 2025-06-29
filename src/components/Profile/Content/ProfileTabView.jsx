@@ -147,7 +147,7 @@ function ProfileTabView({ profileData, userPosts, loading, error }) {
                 sortedPosts.length > 0 ? (
                   <PostsList 
                     posts={sortedPosts}
-                    profileData={profileData}
+                    profileData={profileData || {}}
                   />
                 ) : (
                   <div className="py-16 text-center">

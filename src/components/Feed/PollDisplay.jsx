@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import usePollVotes from '../../hooks/usePollVotes'
 
 function PollDisplay({ post, onVote, compact = false }) {
-  const { user } = useAuth()
+  const { user } = useAuth() 
   const { 
     userVote, 
     voteCount, 
@@ -14,7 +14,7 @@ function PollDisplay({ post, onVote, compact = false }) {
     loading, 
     submitting, 
     submitVote 
-  } = usePollVotes(post.id)
+  } = usePollVotes(post?.id)
   
   const [localUserVote, setLocalUserVote] = useState(null)
   
@@ -46,14 +46,14 @@ function PollDisplay({ post, onVote, compact = false }) {
     }
   }
   
-  if (!post.poll) return null
+  if (!post?.poll) return null
   
   return (
     <div className={compact ? "mt-2" : "mt-3 mb-4"}>
       <div className="bg-gray-50 rounded-xl p-4">
-        <h4 className="font-semibold text-gray-900 mb-3">{post.poll.question}</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">{post?.poll?.question}</h4>
         <div className="space-y-2">
-          {post.poll.options.map((option, index) => {
+          {post?.poll?.options?.map((option, index) => {
             // Calculate percentage
             const optionVotes = voteCount[index] || 0
             const percentage = percentages[index] || 0
@@ -99,9 +99,9 @@ function PollDisplay({ post, onVote, compact = false }) {
           <div className="flex items-center">
             <FiClock className="mr-1" />
             <span>
-              {post.poll.duration === 1 
+              {post?.poll?.duration === 1 
                 ? '1 day remaining' 
-                : `${post.poll.duration} days remaining`}
+                : `${post?.poll?.duration} days remaining`}
             </span>
           </div>
         </div>

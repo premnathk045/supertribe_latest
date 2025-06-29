@@ -78,10 +78,10 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
   const isCurrentPreview = media[currentMediaIndex]?.isPreview
   const currentMedia = media[currentMediaIndex]
   const isVideo = currentMedia?.type === 'video'
-  const hasPoll = post.poll && Object.keys(post.poll).length > 0
+  const hasPoll = post?.poll && Object.keys(post.poll || {}).length > 0
 
   // Determine if content should be locked
-  const shouldLockContent = post.is_premium && !isCreator && !hasPurchased
+  const shouldLockContent = post?.is_premium && !isCreator && !hasPurchased
 
   const handleUnlockContent = async (e) => {
     e.stopPropagation()
@@ -385,7 +385,7 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
       {/* Poll Display */}
       {hasPoll && (
         <PollDisplay 
-          post={post} 
+          post={post || {}} 
           onVote={onPollVote} 
           compact={true} 
         />

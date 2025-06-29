@@ -2,14 +2,17 @@ import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { FiHeart, FiMessageCircle, FiShare, FiBookmark, FiMoreHorizontal } from 'react-icons/fi'
+import { useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { usePremiumContent } from '../../../hooks/usePremiumContent'
 import VerifiedBadge from '../../VerifiedBadge'
-import PostCard from '../../Feed/PostCard'
+import PollDisplay from '../../Feed/PollDisplay'
+import PaymentMethodModal from '../../Modals/PaymentMethodModal'
 
 function PostsList({ posts, profileData }) {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   
   const handlePostLike = (postId) => {
     console.log('Like post:', postId)
@@ -35,6 +38,11 @@ function PostsList({ posts, profileData }) {
     console.log('Open post:', post.id)
     // Navigate to post detail page
     navigate(`/post/${post.id}`)
+  }
+  
+  const handlePollVote = (postId, optionIndex) => {
+    console.log(`Vote for option ${optionIndex} in poll ${postId}`)
+    // Would implement poll vote functionality here
   }
   
   return (
@@ -73,7 +81,7 @@ function PostsList({ posts, profileData }) {
             </button>
           </div>
           
-          {/* Post Content */}
+          {/* Post Content Section */}
           <div className="px-4 pb-3">
             {post.content && (
               <p className="text-gray-900 leading-relaxed mb-3">{post.content}</p>
@@ -93,15 +101,35 @@ function PostsList({ posts, profileData }) {
             )}
           </div>
           
+          {/* Poll Display */}
+          {post.poll && Object.keys(post.poll).length > 0 && (
+            <div className="px-4 pb-3">
+              <PollDisplay 
+                post={post} 
+                onVote={handlePollVote} 
+              />
+            </div>
+          )}
+          
           {/* Post Media */}
           {post.media_urls && post.media_urls.length > 0 && (
             <div className="relative bg-black aspect-square overflow-hidden">
-              <img
-                src={post.media_urls[0]}
-                alt="Post media"
-                className="w-full h-full object-cover"
-                onClick={() => handlePostClick(post)}
-              />
+              {/* Determine if it's a video based on file extension */}
+              {post.media_urls[0].match(/\.(mp4|webm|mov)$/i) ? (
+                <video
+                  src={post.media_urls[0]}
+                  className="w-full h-full object-cover"
+                  controls
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <img
+                  src={post.media_urls[0]}
+                  alt="Post media"
+                  className="w-full h-full object-cover"
+                  onClick={() => handlePostClick(post)}
+                />
+              )}
               
               {/* Multiple Media Indicator */}
               {post.media_urls.length > 1 && (
@@ -176,6 +204,12 @@ function PostsList({ posts, profileData }) {
           </div>
         </motion.div>
       ))}
+      
+      {/* Payment Method Modal */}
+      <PaymentMethodModal 
+        isOpen={showPaymentModal} 
+        onClose={() => setShowPaymentModal(false)} 
+      />
       
       {posts.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
