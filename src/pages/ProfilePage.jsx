@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useFollow } from '../hooks/useFollow'
 import { supabase } from '../lib/supabase'
+import { usePremiumContent } from '../hooks/usePremiumContent'
 import LoadingSpinner from '../components/UI/LoadingSpinner'
 import { validateUsername } from '../utils/validation'
 
@@ -14,6 +15,7 @@ import StoryHighlightModal from '../components/Profile/Stories/StoryHighlightMod
 import Bio from '../components/Profile/Bio'
 import ContentTabs from '../components/Profile/Content/ContentTabs'
 import ContentGrid from '../components/Profile/Content/ContentGrid'
+import PostsList from '../components/Profile/Content/PostsList'
 import ProfileActions from '../components/Profile/Actions/ProfileActions'
 import FollowersModal from '../components/Profile/FollowersModal'
 
@@ -562,13 +564,20 @@ function ProfilePage() {
         {/* Content Grid */}
         {!isEditing && (
           <div className="p-4">
-            <ContentGrid 
-              activeTab={activeTab}
-              posts={[userPosts, savedPosts, likedPosts]}
-              loading={contentLoading}
-              error={null}
-              onPostClick={(post) => console.log('Post clicked:', post)}
-            />
+            {activeTab === 'posts' ? (
+              <PostsList 
+                posts={userPosts}
+                profileData={profileData}
+              />
+            ) : (
+              <ContentGrid 
+                activeTab={activeTab}
+                posts={[userPosts, savedPosts, likedPosts]}
+                loading={contentLoading}
+                error={null}
+                onPostClick={(post) => navigate(`/post/${post.id}`)}
+              />
+            )}
           </div>
         )}
       </div>
