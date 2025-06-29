@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { useRef } from 'react'
+import { useRef, useCallback } from 'react'
 import { useFollow } from '../hooks/useFollow'
 import { supabase } from '../lib/supabase'
 import { usePremiumContent } from '../hooks/usePremiumContent'
@@ -51,9 +51,8 @@ function ProfilePage() {
   // Edit form state
   const [editForm, setEditForm] = useState({
     username: '',
-    display_name: '',
-    bio: '',
-    avatar_url: '',
+    display_name: '', 
+    bio: ''
   })
   const [editErrors, setEditErrors] = useState({})
 
@@ -128,9 +127,8 @@ function ProfilePage() {
       // Initialize edit form with current data 
       setEditForm({
         username: profile.username || '',
-        display_name: profile.display_name || '',
-        bio: profile.bio || '',
-        avatar_url: profile.avatar_url || ''
+        display_name: profile.display_name || '', 
+        bio: profile.bio || ''
       })
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -208,17 +206,6 @@ function ProfilePage() {
     }
 
     // Avatar URL validation (basic)
-    if (editForm.avatar_url && editForm.avatar_url.trim()) {
-      try {
-        new URL(editForm.avatar_url)
-        // Basic image URL validation
-        if (!editForm.avatar_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          errors.avatar_url = 'Avatar URL must be a valid image URL'
-        }
-      } catch {
-        errors.avatar_url = 'Please enter a valid URL'
-      }
-    }
 
     setEditErrors(errors)
     return Object.keys(errors).length === 0
@@ -234,8 +221,8 @@ function ProfilePage() {
     }
   }
 
-  // Save profile changes - SINGLE IMPLEMENTATION
-  const handleSaveProfile = async () => {
+  // Save profile changes
+  const handleSaveProfile = useCallback(async () => {
     if (!validateEditForm()) {
       return
     }
@@ -244,17 +231,17 @@ function ProfilePage() {
     setError(null)
 
     try {
-      // Check if username is already taken (if changed)
-      if (editForm.username !== profileData.username) {
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', editForm.username)
-          .single()
+      // Check if username is already taken (if changed) 
+      if (editForm.username !== profileData.username) { 
+        const { data: existingUser } = await supabase 
+          .from('profiles') 
+          .select('id') 
+          .eq('username', editForm.username) 
+          .single() 
 
-        if (existingUser) {
-          setEditErrors({ username: 'Username is already taken' })
-          setSaving(false)
+        if (existingUser) { 
+          setEditErrors({ username: 'Username is already taken' }) 
+          setSaving(false) 
           return
         }
       }
@@ -262,10 +249,10 @@ function ProfilePage() {
       // Upload profile image if changed
       let avatarUrl = editForm.avatar_url
       if (profileHeaderRef.current && editForm.avatar_url !== profileData.avatar_url) {
-        try {
-          const uploadedUrl = await ProfileHeader.uploadProfileImage(profileHeaderRef.current)
-          if (uploadedUrl) {
-            avatarUrl = uploadedUrl
+        try { 
+          const uploadedUrl = await ProfileHeader.uploadProfileImage(profileHeaderRef.current) 
+          if (uploadedUrl) { 
+            avatarUrl = uploadedUrl 
           }
         } catch (uploadError) {
           console.error('Error uploading profile image:', uploadError)
@@ -278,7 +265,7 @@ function ProfilePage() {
         .update({
           username: editForm.username,
           display_name: editForm.display_name,
-          bio: editForm.bio,
+          bio: editForm.bio, 
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString()
         })
@@ -328,7 +315,7 @@ function ProfilePage() {
     } finally {
       setSaving(false)
     }
-  }
+  }, [validateEditForm, editForm, profileData, userProfile, updateUserProfile, profileHeaderRef])
 
   // Cancel edit mode
   const handleCancelEdit = () => {
@@ -337,8 +324,7 @@ function ProfilePage() {
     // Reset form to original data
     setEditForm({
       username: profileData.username || '',
-      display_name: profileData.display_name || '',
-      bio: profileData.bio || '',
+      display_name: profileData.display_name || '', 
       avatar_url: profileData.avatar_url || ''
     })
   }
@@ -545,30 +531,6 @@ function ProfilePage() {
                 </div>
                 
                 {/* Avatar URL Field */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Profile Photo URL
-                    </label>
-                    <input
-                      type="url"
-                      value={editForm.avatar_url}
-                      onChange={(e) => handleEditInputChange('avatar_url', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
-                        editErrors.avatar_url ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                      placeholder="https://example.com/avatar.jpg"
-                    />
-                    {editErrors.avatar_url && (
-                      <p className="text-red-500 text-xs mt-1">{editErrors.avatar_url}</p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter a URL to an image (JPG, PNG, GIF)
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
 

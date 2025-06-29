@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { FiEdit3, FiCamera } from 'react-icons/fi'
 import VerifiedBadge from '../../VerifiedBadge'
-import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import { useState, useRef, forwardRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 
 const ProfileHeader = forwardRef(({
@@ -20,15 +20,44 @@ const ProfileHeader = forwardRef(({
   const [previewUrl, setPreviewUrl] = useState(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
   const fileInputRef = useRef(null)
   
-  // Expose the uploadProfileImage method to parent components
-  useImperativeHandle(ref, () => ({
-    uploadProfileImage: async () => {
-      if (!selectedFile) return null
-      return await uploadProfileImage()
+  // Static method for uploading profile image
+  ProfileHeader.uploadProfileImage = async (fileInputRef) => {
+    if (!fileInputRef.current?.files?.[0]) return null
+    
+    const file = fileInputRef.current.files[0]
+    const userId = fileInputRef.current.dataset.userId
+    
+    if (!file || !userId) return null
+    
+    try {
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userId}/${Date.now()}.${fileExt}`
+      
+      // Upload file to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+      
+      if (error) throw error
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+      
+      return publicUrl
+    } catch (error) {
+      console.error('Error uploading profile image:', error)
+      return null
     }
-  }))
+  }
   
   const handleProfilePictureClick = () => {
     if (isEditing && isOwnProfile) {
@@ -41,16 +70,19 @@ const ProfileHeader = forwardRef(({
     if (file && isEditing && isOwnProfile) {
       // Validate file type
       if (!file.type.match(/image\/(jpeg|jpg|png|gif)/i)) {
-        alert('Please select a valid image file (JPG, PNG, or GIF)')
+        setUploadError('Please select a valid image file (JPG, PNG, or GIF)')
         return
       }
       
       // Validate file size (max 5MB)
       const MAX_SIZE = 5 * 1024 * 1024
       if (file.size > MAX_SIZE) {
-        alert(`File size exceeds 5MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`)
+        setUploadError(`File size exceeds 5MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`)
         return
       }
+      
+      // Clear any previous errors
+      setUploadError(null)
       
       // Store the selected file for later upload
       setSelectedFile(file)
@@ -58,70 +90,9 @@ const ProfileHeader = forwardRef(({
       // Create a preview URL
       const objectUrl = URL.createObjectURL(file)
       setPreviewUrl(objectUrl)
-      
-      // Update the form data with the preview URL
-      handleEditInputChange('avatar_url', objectUrl)
     }
   }
   
-  // Function to upload the profile image to Supabase Storage
-  const uploadProfileImage = async () => {
-    if (!selectedFile || !profileData?.id) return null
-    
-    try {
-      setIsUploading(true)
-      setUploadProgress(0)
-      
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return 90
-          }
-          return prev + 10
-        })
-      }, 300)
-      
-      // Generate a unique filename
-      const fileExt = selectedFile.name.split('.').pop()
-      const fileName = `${profileData.id}/${Date.now()}.${fileExt}`
-      
-      // Upload file to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, selectedFile, {
-          cacheControl: '3600',
-          upsert: false
-        })
-      
-      if (error) throw error
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName)
-      
-      // Clear the selected file and preview
-      setSelectedFile(null)
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-        setPreviewUrl(null)
-      }
-      
-      // Complete progress
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-      
-      return publicUrl
-    } catch (error) {
-      console.error('Error uploading profile image:', error)
-      return null
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
   return (
     <div className="flex items-center space-x-6 mb-6">
       <div className="relative">
@@ -136,6 +107,7 @@ const ProfileHeader = forwardRef(({
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/jpg,image/gif"
+              data-user-id={profileData?.id}
               className="hidden"
               onChange={handleFileChange}
             />
@@ -169,6 +141,13 @@ const ProfileHeader = forwardRef(({
                 </>
               )}
             </motion.div>
+            
+            {/* Upload Error */}
+            {uploadError && (
+              <div className="absolute -bottom-8 left-0 right-0 text-center">
+                <p className="text-xs text-red-500 bg-red-50 p-1 rounded">{uploadError}</p>
+              </div>
+            )}
           </div>
         ) : (
           <img
