@@ -53,7 +53,7 @@ function ProfilePage() {
     username: '',
     display_name: '',
     bio: '',
-    avatar_url: ''
+    avatar_url: '',
   })
   const [editErrors, setEditErrors] = useState({})
 
@@ -68,6 +68,93 @@ function ProfilePage() {
     loading: followLoading,
     toggleFollow
   } = useFollow(profileData?.id)
+
+  // Handle saving profile with image upload
+  const handleSaveProfile = async () => {
+    if (!validateEditForm()) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    try {
+      // Check if username is already taken (if changed)
+      if (editForm.username !== profileData.username) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', editForm.username)
+          .single()
+
+        if (existingUser) {
+          setEditErrors({ username: 'Username is already taken' })
+          setSaving(false)
+          return
+        }
+      }
+
+      // Upload profile image if changed
+      let avatarUrl = editForm.avatar_url
+      if (profileHeaderRef.current && editForm.avatar_url !== profileData.avatar_url) {
+        const uploadedUrl = await ProfileHeader.uploadProfileImage(profileHeaderRef.current)
+        if (uploadedUrl) {
+          avatarUrl = uploadedUrl
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          username: editForm.username,
+          display_name: editForm.display_name,
+          bio: editForm.bio,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profileData.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error updating profile:', error)
+        setError('Failed to update profile')
+        return
+      }
+
+      // Update local state
+      setProfileData(data)
+      setIsEditing(false)
+
+      // Show success toast
+      setToast({
+        message: 'Profile updated successfully',
+        type: 'success'
+      })
+
+      // Update auth context if this is the current user's profile
+      if (isOwnProfile) {
+        await updateUserProfile({
+          username: data.username,
+          display_name: data.display_name,
+          bio: data.bio,
+          avatar_url: data.avatar_url
+        })
+      }
+
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      setError('An unexpected error occurred')
+      
+      // Show error toast
+      setToast({
+        message: 'Failed to update profile',
+        type: 'error'
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   // Combined stats object
   const profileStats = {
@@ -312,93 +399,6 @@ function ProfilePage() {
     setEditErrors({})
     // Reset form to original data
     setEditForm({
-  // Handle saving profile with image upload
-  const handleSaveProfile = async () => {
-    if (!validateEditForm()) {
-      return
-    }
-
-    setSaving(true)
-    setError(null)
-
-    try {
-      // Check if username is already taken (if changed)
-      if (editForm.username !== profileData.username) {
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', editForm.username)
-          .single()
-
-        if (existingUser) {
-          setEditErrors({ username: 'Username is already taken' })
-          setSaving(false)
-          return
-        }
-      }
-
-      // Upload profile image if changed
-      let avatarUrl = editForm.avatar_url
-      if (profileHeaderRef.current && editForm.avatar_url !== profileData.avatar_url) {
-        const uploadedUrl = await ProfileHeader.uploadProfileImage(profileHeaderRef.current)
-        if (uploadedUrl) {
-          avatarUrl = uploadedUrl
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({
-          username: editForm.username,
-          display_name: editForm.display_name,
-          bio: editForm.bio,
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', profileData.id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error updating profile:', error)
-        setError('Failed to update profile')
-        return
-      }
-
-      // Update local state
-      setProfileData(data)
-      setIsEditing(false)
-
-      // Show success toast
-      setToast({
-        message: 'Profile updated successfully',
-        type: 'success'
-      })
-
-      // Update auth context if this is the current user's profile
-      if (isOwnProfile) {
-        await updateUserProfile({
-          username: data.username,
-          display_name: data.display_name,
-          bio: data.bio,
-          avatar_url: data.avatar_url
-        })
-      }
-
-    } catch (error) {
-      console.error('Error updating profile:', error)
-      setError('An unexpected error occurred')
-      
-      // Show error toast
-      setToast({
-        message: 'Failed to update profile',
-        type: 'error'
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
-
       username: profileData.username || '',
       display_name: profileData.display_name || '',
       bio: profileData.bio || '',
