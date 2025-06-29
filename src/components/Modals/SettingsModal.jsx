@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { FiX, FiUser, FiLock, FiBell, FiCreditCard, FiStar, FiHelpCircle, FiLogOut, FiSettings } from 'react-icons/fi'
+import { FiX, FiUser, FiLock, FiBell, FiCreditCard, FiStar, FiHelpCircle, FiLogOut, FiSettings, FiPlus } from 'react-icons/fi'
 import { useAuth } from '../../contexts/AuthContext'
+import usePaymentMethods from '../../hooks/usePaymentMethods'
 import VerifiedBadge from '../VerifiedBadge'
 
 const settingsSections = [
@@ -15,6 +16,7 @@ const settingsSections = [
 function SettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate()
   const { user, userProfile, signOut, isCreator, isFan } = useAuth()
+  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods()
 
   const handleSignOut = async () => {
     await signOut()
@@ -29,6 +31,11 @@ function SettingsModal({ isOpen, onClose }) {
   const handleCreatorSettings = () => {
     onClose()
     navigate('/creator-dashboard')
+  }
+  
+  const handlePaymentSettings = () => {
+    onClose()
+    navigate('/payment')
   }
 
   return (
@@ -137,6 +144,39 @@ function SettingsModal({ isOpen, onClose }) {
                     </div>
                   </motion.button>
                 )}
+              </div>
+            )}
+
+            {/* Payment Methods Section */}
+            {user && (
+              <div className="mb-6">
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePaymentSettings}
+                  className="w-full p-4 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-xl transition-all text-left"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <FiCreditCard className="text-xl text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white">Payment Methods</h3>
+                      <p className="text-sm text-white/90">
+                        {paymentMethodsLoading 
+                          ? 'Loading payment methods...' 
+                          : paymentMethods.length > 0 
+                          ? `${paymentMethods.length} payment method${paymentMethods.length !== 1 ? 's' : ''} added` 
+                          : 'Add a payment method'}
+                      </p>
+                    </div>
+                    {paymentMethods.length === 0 && (
+                      <FiPlus className="text-white" />
+                    )}
+                  </div>
+                </motion.button>
               </div>
             )}
 

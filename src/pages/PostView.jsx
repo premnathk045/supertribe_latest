@@ -15,6 +15,8 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { formatDistanceToNow } from 'date-fns'
+import usePremiumContent from '../hooks/usePremiumContent'
+import PaymentMethodModal from '../components/Modals/PaymentMethodModal'
 import VerifiedBadge from '../components/VerifiedBadge'
 
 // Import components
@@ -29,6 +31,7 @@ function PostView() {
   const { postId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { unlockContent, unlocking, showPaymentModal, setShowPaymentModal } = usePremiumContent()
   
   // State
   const [post, setPost] = useState(null)
@@ -378,6 +381,21 @@ function PostView() {
     return post.is_premium && currentMedia && !currentMedia.isPreview
   }
   
+  // Handle unlocking premium content
+  const handleUnlockContent = async () => {
+    if (!user) {
+      navigate('/?auth=signin')
+      return
+    }
+    
+    const result = await unlockContent(postId, post.price)
+    
+    if (result.success) {
+      // Refresh the post to show unlocked content
+      fetchPostData()
+    }
+  }
+  
   // Render loading state
   if (loading) {
     return (
@@ -489,19 +507,13 @@ function PostView() {
                 <div className="text-center text-white">
                   <FiLock className="text-3xl mx-auto mb-2" />
                   <p className="font-semibold">Premium Content</p>
-                  <p className="text-sm opacity-90">${post.price}</p>
+                  <p className="text-sm opacity-90">${post.price?.toFixed(2)}</p>
                   <button 
                     className="mt-3 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
-                    onClick={() => {
-                      if (!user) {
-                        navigate('/?auth=signin')
-                      } else {
-                        // Open purchase modal
-                        alert('Premium content purchase would open here')
-                      }
-                    }}
+                    onClick={handleUnlockContent}
+                    disabled={unlocking}
                   >
-                    <VerifiedBadge size="sm" />
+                    {unlocking ? 'Processing...' : 'Unlock Content'}
                   </button>
                 </div>
               </div>
@@ -622,6 +634,12 @@ function PostView() {
           </div>
         </div>
       </div>
+      
+      {/* Payment Method Modal */}
+      <PaymentMethodModal 
+        isOpen={showPaymentModal} 
+        onClose={() => setShowPaymentModal(false)} 
+      />
     </div>
   )
 }

@@ -12,6 +12,7 @@ import MessagesPage from './pages/MessagesPage'
 import ProfileView from './pages/ProfileView'
 import PostView from './pages/PostView'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import PaymentPage from './pages/PaymentPage'
 import CreatorVerificationPage from './pages/CreatorVerificationPage'
 import CreatorDashboardPage from './pages/CreatorDashboardPage'
 import StorageDebugPage from './pages/StorageDebugPage'
@@ -36,6 +37,11 @@ function App() {
                 <Route path="/creator-dashboard" element={
                   <ProtectedRoute requiredRole="creator">
                     <CreatorDashboardPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/payment" element={
+                  <ProtectedRoute>
+                    <PaymentPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/" element={<Layout />}>

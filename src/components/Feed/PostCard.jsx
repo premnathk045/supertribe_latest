@@ -4,7 +4,7 @@ import {
   FiHeart, 
   FiMessageCircle, 
   FiShare, 
-  FiBookmark, 
+  FiBookmark,
   FiMoreHorizontal,
   FiLock,
   FiVolume2,
@@ -14,11 +14,14 @@ import {
 } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '../../contexts/AuthContext'
+import usePremiumContent from '../../hooks/usePremiumContent'
+import PaymentMethodModal from '../Modals/PaymentMethodModal'
 import VerifiedBadge from '../VerifiedBadge'
 import PollDisplay from './PollDisplay'
 
 function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVote, isInView = true }) {
   const { user } = useAuth()
+  const { unlockContent, unlocking, showPaymentModal, setShowPaymentModal } = usePremiumContent()
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -69,6 +72,22 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
   const currentMedia = media[currentMediaIndex]
   const isVideo = currentMedia?.type === 'video'
   const hasPoll = post.poll && Object.keys(post.poll).length > 0
+
+  const handleUnlockContent = async (e) => {
+    e.stopPropagation()
+    if (!user) {
+      // Redirect to sign in
+      window.location.href = '/?auth=signin'
+      return
+    }
+    
+    const result = await unlockContent(post.id, post.price)
+    
+    if (result.success) {
+      // Refresh the post to show unlocked content
+      window.location.reload()
+    }
+  }
 
   // Auto-play video when in view
   useEffect(() => {
@@ -209,8 +228,12 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
             <div className="text-center text-white">
               <FiLock className="text-4xl mx-auto mb-3" />
               <p className="font-semibold text-lg">Premium Content</p>
-              <p className="text-sm opacity-90 mb-4">${post.price}</p>
-              <button className="bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors">
+              <p className="text-sm opacity-90 mb-4">${post.price?.toFixed(2)}</p>
+              <button 
+                onClick={handleUnlockContent}
+                className="bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
+              >
+                {unlocking ? 'Processing...' : 'Unlock'}
                 Unlock
               </button>
             </div>
@@ -342,6 +365,12 @@ function PostCard({ post, onLike, onSave, onComment, onShare, onClick, onPollVot
           </>
         )}
       </div>}
+      
+      {/* Payment Method Modal */}
+      <PaymentMethodModal 
+        isOpen={showPaymentModal} 
+        onClose={() => setShowPaymentModal(false)} 
+      />
 
       {/* Poll Display */}
       {hasPoll && (
