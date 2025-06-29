@@ -164,7 +164,7 @@ function SettingsModal({ isOpen, onClose }) {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">Payment Methods</h3>
-                      <p className="text-sm text-white/90">
+                      <p className="text-sm text-gray-600">
                         {paymentMethodsLoading 
                           ? 'Loading payment methods...' 
                           : paymentMethods.length > 0 
@@ -173,7 +173,7 @@ function SettingsModal({ isOpen, onClose }) {
                       </p>
                     </div>
                     {paymentMethods.length === 0 && (
-                      <FiPlus className="text-white" />
+                      <FiPlus className="text-primary-500" />
                     )}
                   </div>
                 </motion.button>
